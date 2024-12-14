@@ -1,6 +1,4 @@
 import sys, os
-#sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-#sys.path.extend("./")
 import torch
 import torch.nn as nn
 import numpy as np
@@ -495,10 +493,10 @@ class CNN_CIFAR(nn.Module):
 		self.fc = torch.load(pathPrefix +"_fc.pth")
 
 
-class UNET_CIFAR(nn.Module):
+class UNET(nn.Module):
 		
 	def __init__(self, num_classes):
-		super(UNET_CIFAR, self).__init__()
+		super(UNET, self).__init__()
 		self.num_classes = num_classes
 		self.contracting_11 = self.conv_block(in_channels=3, out_channels=32)
 		self.contracting_12 = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -549,37 +547,6 @@ class UNET_CIFAR(nn.Module):
 		x = expansive_42_out.view(expansive_42_out.size(0), -1)
 		output_out = self.fc(x)
 		return output_out
-	
-	def save_models(self, pathPrefix):
-		torch.save(self.contracting_11, pathPrefix +"_contracting_11.pth")
-		torch.save(self.contracting_21, pathPrefix +"_contracting_21.pth")
-		torch.save(self.contracting_31, pathPrefix +"_contracting_31.pth")
-		torch.save(self.middle, pathPrefix +"_middle.pth")
-		torch.save(self.expansive_12, pathPrefix +"_expansive_12.pth")
-		torch.save(self.expansive_22, pathPrefix +"_expansive_22.pth")
-		torch.save(self.expansive_32, pathPrefix +"_expansive_32.pth")
-		torch.save(self.output, pathPrefix +"_output.pth")
-
-	def save_models_sd(self, pathPrefix):
-		torch.save(self.contracting_11.state_dict(), pathPrefix +"_contracting_11_sd.pth")
-		torch.save(self.contracting_21.state_dict(), pathPrefix +"_contracting_21_sd.pth")
-		torch.save(self.contracting_31.state_dict(), pathPrefix +"_contracting_31_sd.pth")
-		torch.save(self.middle.state_dict(), pathPrefix +"_middle_sd.pth")
-		torch.save(self.expansive_12.state_dict(), pathPrefix +"_expansive_12_sd.pth")
-		torch.save(self.expansive_22.state_dict(), pathPrefix +"_expansive_22_sd.pth")
-		torch.save(self.expansive_32.state_dict(), pathPrefix +"_expansive_32_sd.pth")
-		torch.save(self.output.state_dict(), pathPrefix +"_output_sd.pth")
-
-	# can load model parameters by only non-sd save file
-	def load_models(self, pathPrefix):
-		self.contracting_11 = torch.load(pathPrefix +"_contracting_11.pth")
-		self.contracting_21 = torch.load(pathPrefix +"_contracting_21.pth")
-		self.contracting_31 = torch.load(pathPrefix +"_contracting_31.pth")
-		self.middle = torch.load(pathPrefix +"_middle.pth")
-		self.expansive_12 = torch.load(pathPrefix +"_expansive_12.pth")
-		self.expansive_22 = torch.load(pathPrefix +"_expansive_22.pth")
-		self.expansive_32 = torch.load(pathPrefix +"_expansive_32.pth")
-		self.output = torch.load(pathPrefix +"_output.pth")
 
 class BasicBlock(nn.Module):
 	def __init__(self, in_channels, out_channels, downsample=None):
@@ -651,10 +618,10 @@ class Bottleneck(nn.Module):
 
         return out
 
-class RESNET18_CIFAR(nn.Module):
+class RESNET18(nn.Module):
 		
 	def __init__(self, num_classes):
-		super(RESNET18_CIFAR, self).__init__()
+		super(RESNET18, self).__init__()
 		self.num_classes = num_classes
 		
 		self.conv1 = nn.Conv2d(3, 16, kernel_size=7, stride =2, padding =3, bias=False)
@@ -700,42 +667,11 @@ class RESNET18_CIFAR(nn.Module):
 		x = torch.flatten(x, 1)
 		x = self.fc(x)
 		return x
-	
-	def save_models(self, pathPrefix):
-		torch.save(self.contracting_11, pathPrefix +"_contracting_11.pth")
-		torch.save(self.contracting_21, pathPrefix +"_contracting_21.pth")
-		torch.save(self.contracting_31, pathPrefix +"_contracting_31.pth")
-		torch.save(self.middle, pathPrefix +"_middle.pth")
-		torch.save(self.expansive_12, pathPrefix +"_expansive_12.pth")
-		torch.save(self.expansive_22, pathPrefix +"_expansive_22.pth")
-		torch.save(self.expansive_32, pathPrefix +"_expansive_32.pth")
-		torch.save(self.output, pathPrefix +"_output.pth")
 
-	def save_models_sd(self, pathPrefix):
-		torch.save(self.contracting_11.state_dict(), pathPrefix +"_contracting_11_sd.pth")
-		torch.save(self.contracting_21.state_dict(), pathPrefix +"_contracting_21_sd.pth")
-		torch.save(self.contracting_31.state_dict(), pathPrefix +"_contracting_31_sd.pth")
-		torch.save(self.middle.state_dict(), pathPrefix +"_middle_sd.pth")
-		torch.save(self.expansive_12.state_dict(), pathPrefix +"_expansive_12_sd.pth")
-		torch.save(self.expansive_22.state_dict(), pathPrefix +"_expansive_22_sd.pth")
-		torch.save(self.expansive_32.state_dict(), pathPrefix +"_expansive_32_sd.pth")
-		torch.save(self.output.state_dict(), pathPrefix +"_output_sd.pth")
-
-	# can load model parameters by only non-sd save file
-	def load_models(self, pathPrefix):
-		self.contracting_11 = torch.load(pathPrefix +"_contracting_11.pth")
-		self.contracting_21 = torch.load(pathPrefix +"_contracting_21.pth")
-		self.contracting_31 = torch.load(pathPrefix +"_contracting_31.pth")
-		self.middle = torch.load(pathPrefix +"_middle.pth")
-		self.expansive_12 = torch.load(pathPrefix +"_expansive_12.pth")
-		self.expansive_22 = torch.load(pathPrefix +"_expansive_22.pth")
-		self.expansive_32 = torch.load(pathPrefix +"_expansive_32.pth")
-		self.output = torch.load(pathPrefix +"_output.pth")
-
-class RESNET18_CIFAR_small(nn.Module):
+class RESNET18_small(nn.Module):
 		
 	def __init__(self, num_classes):
-		super(RESNET18_CIFAR_small, self).__init__()
+		super(RESNET18_small, self).__init__()
 		self.num_classes = num_classes
 		
 		self.conv1 = nn.Conv2d(3, 8, kernel_size=7, stride =2, padding =3, bias=False)
@@ -744,29 +680,13 @@ class RESNET18_CIFAR_small(nn.Module):
 		self.maxpool = nn.MaxPool2d(kernel_size = 3, stride= 2, padding=1)
 	
 		self.layer11 = BasicBlock(8, 16, downsample=nn.Sequential(nn.Conv2d(8, 16, kernel_size=1, stride=1, bias=False), nn.BatchNorm2d(16)))
-		# for p in self.layer11.parameters():
-			# p.requires_grad = False
 		self.layer12 = BasicBlock(16, 16)
-		# for p in self.layer12.parameters():
-			# p.requires_grad = False
 		self.layer21 = BasicBlock(16, 32, downsample=nn.Sequential(nn.Conv2d(16, 32, kernel_size=1, stride=1, bias=False), nn.BatchNorm2d(32)))
-		# for p in self.layer21.parameters():
-			# p.requires_grad = False
 		self.layer22 = BasicBlock(32, 32)
-		# for p in self.layer22.parameters():
-			# p.requires_grad = False
 		self.layer31 = BasicBlock(32, 64, downsample=nn.Sequential(nn.Conv2d(32, 64, kernel_size=1, stride=1, bias=False), nn.BatchNorm2d(64)))
-		# for p in self.layer31.parameters():
-			# p.requires_grad = False
 		self.layer32 = BasicBlock(64, 64)
-		# for p in self.layer32.parameters():
-			# p.requires_grad = False
 		self.layer41 = BasicBlock(64, 128, downsample=nn.Sequential(nn.Conv2d(64, 128, kernel_size=1, stride=1, bias=False), nn.BatchNorm2d(128)))
-		# for p in self.layer41.parameters():
-			# p.requires_grad = False
 		self.layer42 = BasicBlock(128, 128)
-		# for p in self.layer42.parameters():
-			# p.requires_grad = False
 
 		self.avgpool = nn.AdaptiveAvgPool2d((1,1))
 		self.fc = torch.nn.Linear(128, num_classes)
@@ -797,48 +717,17 @@ class RESNET18_CIFAR_small(nn.Module):
 		x = torch.flatten(x, 1)
 		x = self.fc(x)
 		return x
-	
-	def save_models(self, pathPrefix):
-		torch.save(self.contracting_11, pathPrefix +"_contracting_11.pth")
-		torch.save(self.contracting_21, pathPrefix +"_contracting_21.pth")
-		torch.save(self.contracting_31, pathPrefix +"_contracting_31.pth")
-		torch.save(self.middle, pathPrefix +"_middle.pth")
-		torch.save(self.expansive_12, pathPrefix +"_expansive_12.pth")
-		torch.save(self.expansive_22, pathPrefix +"_expansive_22.pth")
-		torch.save(self.expansive_32, pathPrefix +"_expansive_32.pth")
-		torch.save(self.output, pathPrefix +"_output.pth")
 
-	def save_models_sd(self, pathPrefix):
-		torch.save(self.contracting_11.state_dict(), pathPrefix +"_contracting_11_sd.pth")
-		torch.save(self.contracting_21.state_dict(), pathPrefix +"_contracting_21_sd.pth")
-		torch.save(self.contracting_31.state_dict(), pathPrefix +"_contracting_31_sd.pth")
-		torch.save(self.middle.state_dict(), pathPrefix +"_middle_sd.pth")
-		torch.save(self.expansive_12.state_dict(), pathPrefix +"_expansive_12_sd.pth")
-		torch.save(self.expansive_22.state_dict(), pathPrefix +"_expansive_22_sd.pth")
-		torch.save(self.expansive_32.state_dict(), pathPrefix +"_expansive_32_sd.pth")
-		torch.save(self.output.state_dict(), pathPrefix +"_output_sd.pth")
-
-	# can load model parameters by only non-sd save file
-	def load_models(self, pathPrefix):
-		self.contracting_11 = torch.load(pathPrefix +"_contracting_11.pth")
-		self.contracting_21 = torch.load(pathPrefix +"_contracting_21.pth")
-		self.contracting_31 = torch.load(pathPrefix +"_contracting_31.pth")
-		self.middle = torch.load(pathPrefix +"_middle.pth")
-		self.expansive_12 = torch.load(pathPrefix +"_expansive_12.pth")
-		self.expansive_22 = torch.load(pathPrefix +"_expansive_22.pth")
-		self.expansive_32 = torch.load(pathPrefix +"_expansive_32.pth")
-		self.output = torch.load(pathPrefix +"_output.pth")
-
-class AlexNet_CIFAR(nn.Module):
+class AlexNet(nn.Module):
     def __init__(self, num_classes):
-        super(AlexNet_CIFAR, self).__init__()
+        super(AlexNet, self).__init__()
         # Image input_size=(3, 32, 32)
         self.layers = nn.Sequential(
             # input_size=(96, 55, 55)
-            #nn.Conv2d(in_channels=3, out_channels=96, kernel_size=(11, 11), stride=2, padding=0), 
-            #nn.ReLU(), 
+            nn.Conv2d(in_channels=3, out_channels=96, kernel_size=(11, 11), stride=2, padding=0), 
+            nn.ReLU(), 
             # input_size=(96, 27, 27)
-            #nn.MaxPool2d(kernel_size=3, stride=2),
+            nn.MaxPool2d(kernel_size=3, stride=2),
             # input_size=(256, 27, 27)
             nn.Conv2d(in_channels=3, out_channels=256, kernel_size=(5, 5), stride=1, padding=2),
             nn.ReLU(),
@@ -871,56 +760,60 @@ class AlexNet_CIFAR(nn.Module):
         x = x.view(-1, 256*8*8)
         x = self.classifier(x)
         return x
-	
-def conv_2_block(in_dim,out_dim):
-    model = nn.Sequential(
-        nn.Conv2d(in_dim,out_dim,kernel_size=3,padding=1),
-        nn.ReLU(),
-        nn.Conv2d(out_dim,out_dim,kernel_size=3,padding=1),
-        nn.ReLU(),
-        nn.MaxPool2d(2,2)
-    )
-    return model
 
-def conv_3_block(in_dim,out_dim):
-    model = nn.Sequential(
-        nn.Conv2d(in_dim,out_dim,kernel_size=3,padding=1),
-        nn.ReLU(),
-        nn.Conv2d(out_dim,out_dim,kernel_size=3,padding=1),
-        nn.ReLU(),
-        nn.Conv2d(out_dim,out_dim,kernel_size=3,padding=1),
-        nn.ReLU(),
-        nn.MaxPool2d(2,2)
-    )
-    return model
+
 
 class VGG16(nn.Module):
-    def __init__(self, base_dim, num_classes=10):
-        super(VGG16, self).__init__()
-        self.feature = nn.Sequential(
-            conv_2_block(3,base_dim), #64
-            conv_2_block(base_dim,2*base_dim), #128
-            conv_3_block(2*base_dim,4*base_dim), #256
-            conv_3_block(4*base_dim,8*base_dim), #512
-            conv_3_block(8*base_dim,8*base_dim), #512        
-        )
-        self.fc_layer = nn.Sequential(
-            # CIFAR10은 크기가 32x32이므로 
-            nn.Linear(8*base_dim*1*1, 4096),
-            # IMAGENET이면 224x224이므로
-            # nn.Linear(8*base_dim*7*7, 4096),
+	
+	def __init__(self, base_dim, num_classes=10):
+		super(VGG16, self).__init__()
+		self.feature = nn.Sequential(
+			self.conv_2_block(3,base_dim), #64
+			self.conv_2_block(base_dim,2*base_dim), #128
+			self.conv_3_block(2*base_dim,4*base_dim), #256
+			self.conv_3_block(4*base_dim,8*base_dim), #512
+			self.conv_3_block(8*base_dim,8*base_dim), #512        
+		)
+		self.fc_layer = nn.Sequential(
+            nn.Linear(8*base_dim*1*1, 4096), # in case CIFAR10(with image size 32x32)
+            # nn.Linear(8*base_dim*7*7, 4096), # in case IMAGENET(with image size 224x224)
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(4096, 1000),
+            nn.Linear(4096, 4096),
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(1000, num_classes),
+            nn.Linear(4096, num_classes),
         )
-
-    def forward(self, x):
-        x = self.feature(x)
-        #print(x.shape)
-        x = x.view(x.size(0), -1)
-        #print(x.shape)
-        x = self.fc_layer(x)
-        return x
+	
+	def conv_2_block(in_dim,out_dim):
+		model = nn.Sequential(
+			nn.Conv2d(in_dim,out_dim,kernel_size=3,padding=1),
+			nn.BatchNorm2d(out_dim),
+			nn.ReLU(),
+			nn.Conv2d(out_dim,out_dim,kernel_size=3,padding=1),
+			nn.BatchNorm2d(out_dim),
+			nn.ReLU(),
+			nn.MaxPool2d(2,2)
+		)
+		return model
+		
+	def conv_3_block(in_dim,out_dim):
+		model = nn.Sequential(
+			nn.Conv2d(in_dim,out_dim,kernel_size=3,padding=1),
+			nn.BatchNorm2d(out_dim),
+        	nn.ReLU(),
+        	nn.Conv2d(out_dim,out_dim,kernel_size=3,padding=1),
+			nn.BatchNorm2d(out_dim),
+        	nn.ReLU(),
+        	nn.Conv2d(out_dim,out_dim,kernel_size=3,padding=1),
+			nn.BatchNorm2d(out_dim),
+        	nn.ReLU(),
+        	nn.MaxPool2d(2,2)
+    	)
+		return model
+	
+	def forward(self, x):
+		x = self.feature(x)
+		x = x.view(x.size(0), -1)
+		x = self.fc_layer(x)
+		return x
