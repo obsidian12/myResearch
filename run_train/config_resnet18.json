@@ -1,8 +1,8 @@
 {
     "learning_rate" : 0.005,
     "epochs" : 100,
-    "batch_size" : 64,
-    "sampling_step" : 390,
+    "batch_size" : 100,
+    "sampling_step" : 250,
     "optimizer" : "SGD",
     "criterion" : "CE"
 }
