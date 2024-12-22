@@ -1,5 +1,8 @@
 # run_train
 
+this folder is for training model, and saving weights of model in a given format.
+you can get your train result and weight trajectories as a directory({model}__{seeds}).
+
 ## about trainer.py file
 There are modelLoader classes(UnetLoader, Resnet18Loader, Resnet18SmallLoader, VGG16Loader, ...)
 
