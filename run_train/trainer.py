@@ -7,10 +7,7 @@ import torchvision
 import torchvision.transforms as transforms
 import random as rd
 import numpy as np
-from tqdm import tqdm
-from module import utilModule as um
-from module import netModuleCNN as nmc
-from module import netModuleFC as nmf
+from module.model import CNNModel as nmc
 import matplotlib.pyplot as plt
 import math
 import json
@@ -254,6 +251,7 @@ class trainer:
 		device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 		model = self.load_model(model_name).to(device)
+
 		criterion = self.load_criterion()
 		optimizer = self.load_optimizer(model)
 

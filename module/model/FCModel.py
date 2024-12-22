@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from . import layerModule as lm
+from . import layer as lm
 
 class FC_MNIST(nn.Module):
 

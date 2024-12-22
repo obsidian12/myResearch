@@ -2,7 +2,7 @@ import sys, os
 import torch
 import torch.nn as nn
 import numpy as np
-from . import layerModule as lm
+from . import layer as lm
 
 # structure : conv(3,4) - conv(4,8) - conv(8,16) - fc(1728,itemNum)
 # #param : 108+4 - 288+8 - 1152+16 - 1728*itemNum + itemNum
@@ -785,7 +785,7 @@ class VGG16(nn.Module):
             nn.Linear(4096, num_classes),
         )
 	
-	def conv_2_block(in_dim,out_dim):
+	def conv_2_block(self, in_dim,out_dim):
 		model = nn.Sequential(
 			nn.Conv2d(in_dim,out_dim,kernel_size=3,padding=1),
 			nn.BatchNorm2d(out_dim),
@@ -797,7 +797,7 @@ class VGG16(nn.Module):
 		)
 		return model
 		
-	def conv_3_block(in_dim,out_dim):
+	def conv_3_block(self, in_dim,out_dim):
 		model = nn.Sequential(
 			nn.Conv2d(in_dim,out_dim,kernel_size=3,padding=1),
 			nn.BatchNorm2d(out_dim),

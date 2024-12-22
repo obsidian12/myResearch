@@ -1,249 +1,11 @@
-# ********************************************************************************************
-# 파일명 : pcaModule.py
-# 목적　 : DLDR 기저의 계산, PCA, KPCA 계산, 웨이트의 푸리에 변환 등이 정의된 모듈
-# 구조 　: 클래스 구조(분할 파일 DLDR 계산, 일반 파일 DLDR 계산, PCA 계산, 푸리에 변환)
-# ********************************************************************************************
 import os, sys
-#import makeArray as ma
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import copy as cp
-from glob import glob
 from tqdm import tqdm
-#import makeArray as ma
-from scipy.spatial.distance import pdist, cdist, squareform
+import ParamIO
+from scipy.spatial.distance import cdist
 
-def tmp(csvFile): # 여기서 FileList란 학습 한번에 저장된 웨이트 파일 리스트를 말하는 거임
-    
-    dataList = []
-    f = open(csvFile, "r")
-
-    while True:
-        line = f.readline()
-        if not line: break
-        tmpList = line.split(",")
-        returnList = []
-        for element in tmpList:
-            if element != "": returnList.append(float(element))
-        dataList.append(returnList)
-    f.close()
-
-    dataArray = np.array(dataList)
-    return dataArray
-
-def makeDataArrayInDim(csvFileList, loadMin=0, loadMax=1048576): # 여기서 FileList란 학습 한번에 저장된 웨이트 파일 리스트를 말하는 거임
-    unitNumCounter = 0 # in this mode, unitNumCounter equals to number of column of the matrix
-    tmpCounter = 0
-    dataList = []
-
-    for csvFile in csvFileList:
-        f = open(csvFile, "r")
-        tmpCounter = 0
-        while True:
-            line = f.readline()
-            if tmpCounter <= loadMin: continue
-            if not line or not (tmpCounter < loadMax): break
-            if csvFileList.index(csvFile) == 0: 
-                unitNumCounter = unitNumCounter + 1
-                tmpList = line.split(",")
-                returnList = []
-                for element in tmpList:
-                    if element != "": returnList.append(float(element))
-                dataList.append(returnList)
-            else:
-                tmpList = line.split(",")
-                for element in tmpList:
-                    if element != "": dataList[tmpCounter].append(float(element))
-            tmpCounter = tmpCounter + 1
-        f.close()
-
-    dataArray = np.array(dataList)
-    return unitNumCounter, np.transpose(dataArray)
-
-class weightDLDR_divided():
-
-    def __init__(self, partitionFolderList, isCenterized=False):
-        self.folderList = [] # 
-        self.csvList = []
-        for partitionFolder in partitionFolderList:
-            self.folderList.append(partitionFolder)
-            self.csvList.extend(glob(partitionFolder + '/*.csv'))
-        self.isCenterized = isCenterized
-        self.centerizeCsvList = []
-        if isCenterized:
-            self.centerizeCsvList = glob(self.folderList[0] +"_centerized" + '/*.csv')
-
-    # self.folderList, self.csvList 내의 모든 열벡터(한 열벡터가 한 행의 형태로 저장됨)를
-    # (한 세트에 대해서) 중심화시키는 메소드
-    def centerize(self):
-        if self.isCenterized:
-            print("Centerized is already done!")
-            return
-        
-        newFolder = self.folderList[0] + "_centerized"
-        if not os.path.isdir(newFolder):
-            os.mkdir(newFolder)
-        
-        for idx in tqdm(range(len(self.csvList))):
-           # _, x = makeDataArray([self.csvList[idx]]) # 열벡터가 파라미터
-            x = np.transpose(x) # 행벡터가 파라미터
-            row, column = x.shape
-            xNorm = np.sum(x, axis=0)
-            xMean = xNorm / row
-            xMean = np.expand_dims(xMean, axis=0)
-            meanMatrix = np.ones((row, 1)) @ xMean
-            x = x - meanMatrix
-
-            newCsvFile = newFolder + "/part{:04d}.csv".format(idx)
-            self.centerizeCsvList.append(newCsvFile)
-
-            with open(newCsvFile, "w") as f:
-                for i in range(row):
-                    for j in range(column):
-                        if j != 0: f.write(",")
-                        f.write(str(x[i, j]))
-                    f.write("\n")
-                f.close()
-
-        print("Centerizing complete!")
-        self.isCenterized = True
-
-    # 웨이트들의 자기상관행렬의 dual, 즉 dual-auto-correlation matrix(refers to (A^T) @ A)를 계산하는 메소드
-    # DLDR은  A @ (A^T) 의 계산이 복잡하기에 (A^T) @ A 를 고유치 분해해서 간접적으로 자기상관행렬의 고유벡터를 얻음
-    def getDualACM(self):
-        if not self.isCenterized:
-            print("need to be Centerized!")
-            return None
-
-        dataList = []
-        dataArray = np.arange(1, 17).reshape(4,4)
-
-        for i in tqdm(range(len(self.centerizeCsvList))):
-            f = open(self.centerizeCsvList[i], "r")
-            while True:
-                line = f.readline()
-                if not line: break
-                tmpList = line.split(",")
-                
-                returnList = []
-                for element in tmpList:
-                    if element != "": returnList.append(float(element))
-                dataList.append(returnList)
-            f.close()
-
-            if i == 0: dataArray = np.array(dataList) @ np.transpose(np.array(dataList))
-            else:
-                dataArray = dataArray + np.array(dataList) @ np.transpose(np.array(dataList))
-
-            dataList = []
-
-        print("Calculating ACM complete!")
-        return dataArray
-    
-    # getDualACM 메소드를 이용해 실질적으로 DLDR을 행하여 그 기저를 계산하는 메소드
-    def getDLDRBasis(self, d):
-        if not self.isCenterized:
-            print("need to be Centerized!")
-            return None
-        
-        dataArray = self.getDualACM()
-        s, V = np.linalg.eig(dataArray)
-        s = abs(s)
-        V = abs(V)
-
-        W = self._getCenterizedW()
-
-        otb = []
-        sum = np.sum(s)
-        tmp = 0
-        for i in tqdm(range(d)):
-            sigma = s[i]
-            tmp = tmp + sigma
-            v = V[:,i]
-            u = (W @ v) / np.sqrt(sigma)
-            otb.append(u)
-        
-        print("Calculating DLDR Basis complete!")
-        print("total contribution : {}".format(tmp / sum))
-        return otb
-
-class weightDLDR_integrated():
-# def makeDualACM(csvFile, splitNum=1):
-    
-#     lengthGetFlag = True
-#     length = 0
-#     splitUnit = 0
-
-#     dataList = []
-
-#     f = open(csvFile, "r")
-#     while True:
-#         line = f.readline()
-#         if not line: break
-#         tmpList = line.split(",")
-
-#         if lengthGetFlag:
-#             length = len(tmpList)
-#             splitUnit = length / splitNum
-#             lengthGetFlag = False
-        
-#         returnList = []
-#         for i in range(splitUnit):
-#             if tmpList[i] != "": returnList.append(float(tmpList[i]))
-#         dataList.append(returnList)
-#     f.close()
-
-#     dataArray = np.array(dataList) @ np.transpose(np.array(dataList))
-
-#     for i in range(1, splitNum):
-#         f = open(csvFile, "r")
-#         while True:
-#             line = f.readline()
-#             if not line: break
-#             tmpList = line.split(",")
-            
-#             returnList = []
-#             for element in tmpList[i * splitUnit:(i + 1) * splitUnit]:
-#                     if element != "": returnList.append(float(element))
-#             dataList.append(returnList)
-
-#         dataArray = dataArray + np.array(dataList) @ np.transpose(np.array(dataList))
-
-#     return dataArray
-
-# def DLDR(param_trajectory, d):
-#     t = param_trajectory.shape[1]
-#     w_mean = param_trajectory[:,0]
-
-#     for i in range(1, t):
-#         w_mean = w_mean + param_trajectory[:,i]
-#     w_mean = w_mean / t
-
-#     W = cp.deepcopy(param_trajectory)
-#     for i in range(t):
-#         W[:,i] = W[:,i] - w_mean
-
-#     s, V = np.linalg.eig(np.transpose(W) @ W)
-#     s = abs(s)
-#     V = abs(V)
-
-#     otb = []
-#     sum = np.sum(s)
-#     tmp = 0
-#     for i in range(d):
-#         sigma = s[i]
-#         tmp = tmp + sigma
-#         v = V[:,i]
-#         u = (W @ v) / np.sqrt(sigma)
-#         otb.append(u)
-    
-#     print("total contribution : {}".format(tmp / sum))
-#     return otb
-    pass
-
-class weightPCA():
+class WeightPCA():
     def __init__(self):
         pass
 
@@ -258,10 +20,6 @@ class weightPCA():
         lambdas, V = np.linalg.eigh(r)
         lambdas = lambdas[::-1]
         V = V[:, ::-1]
-        # for i in range(10):
-        #     print("cumulative contribution to {}-th component : ".format(i + 1), end="")
-        #     print(np.sum(lambdas[:i+1]) / np.sum(lambdas) * 100, end="")
-        #     print("%")
         U = []
         for i in range(n_components):
             v = V[:,i][:,None]
@@ -270,12 +28,12 @@ class weightPCA():
     
     def pca_fulllowcost(self, csvFileList, n_components): #  just doing PCA(doing eigen composition about auto-correlation matrix)
 
-        dataArray_first = tmp(csvFileList[0])
+        dataArray_first = ParamIO.makeDataArrayInSampleNum(csvFileList[0])
         r = dataArray_first@np.transpose(dataArray_first)
         dataNum = r.shape[0]
 
         for csvFile in tqdm(csvFileList[1:]):
-            dataArray = tmp(csvFile)
+            dataArray = ParamIO.makeDataArrayInSampleNum(csvFile)
             r += dataArray@np.transpose(dataArray)
         lambdas, V = np.linalg.eigh(r)
         lambdas = lambdas[::-1]
@@ -285,17 +43,17 @@ class weightPCA():
             v = V[:,i]
             listVec = []
             for csvFile in tqdm(csvFileList):
-                listVec.append(np.squeeze(np.transpose(tmp(csvFile))@v[:,None] / np.sqrt(lambdas[i])))
+                listVec.append(np.squeeze(np.transpose(ParamIO.makeDataArrayInSampleNum(csvFile))@v[:,None] / np.sqrt(lambdas[i])))
             U.append(listVec)
         return [lambdas[:n_components], U]
 
     def pca_Proj_lowcost(self, csvFileList, n_components=3): # after doing PCA, project each data to principle subspace
-        _, U = weightPCA.pca_lowcost(self, csvFileList, n_components)
-        dataArray = tmp(csvFileList[0])
+        _, U = WeightPCA.pca_lowcost(self, csvFileList, n_components)
+        dataArray = ParamIO.makeDataArrayInSampleNum(csvFileList[0])
         dataNum = dataArray.shape[0]
         coordSum = np.zeros((n_components, dataNum))
         for i, csvFile in tqdm(enumerate(csvFileList)):
-            dataArray = tmp(csvFile)
+            dataArray = ParamIO.makeDataArrayInSampleNum(csvFile)
             coord = np.zeros((n_components, dataNum))
             for data in range(dataNum):
                 for pcNum in range(n_components):
@@ -305,11 +63,7 @@ class weightPCA():
         return coordSum
     
     def pca_Proj(self, dataArray, n_components=3): # after doing PCA, project each data to principle subspace
-        tmp = weightPCA.pca_lowcost(self, dataArray, 100)
-        # s = 0
-        # for i, a in enumerate(tmp[0]):
-        #     s += a
-        #     print("{}-th sum : {} || {}".format(i+1, s * 100 / 28956, a))
+        tmp = WeightPCA.pca_lowcost(self, dataArray, 100)
         lambdas = tmp[1]
         
         result = []
@@ -321,6 +75,11 @@ class weightPCA():
         
         return np.transpose(np.array(result))
     
+        
+class WeightKPCA():
+    def __init__(self):
+        pass
+
     def rbf_kpca_proj(self, dataArray, n_components, gamma=5): # after doing PCA, project each data to principle subspace
         """
         RBF 커널 부분공간 정사영 구현
@@ -548,10 +307,10 @@ class weightPCA():
     
     def make_K_matrix_lowcost(self, csvFileList, gamma, centralizeFlag=True):
 
-        X_first = tmp(csvFileList[0])
+        X_first = ParamIO.makeDataArrayInSampleNum(csvFileList[0])
         mat_sq_dists = cdist(X_first, X_first, 'sqeuclidean')
         for csvFile in tqdm(csvFileList[1:]):
-            X = tmp(csvFile)
+            X = ParamIO.makeDataArrayInSampleNum(csvFile)
             mat_sq_dists += cdist(X, X, 'sqeuclidean')
         K = np.exp(-gamma * mat_sq_dists)
 
@@ -561,18 +320,3 @@ class weightPCA():
             K = K - one_n.dot(K) - K.dot(one_n) + one_n.dot(K).dot(one_n)
 
         return K
-
-    
-class weightFFT():
-
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def fft(dataVec, sampleFreq):
-        n = len(dataVec)
-        k = np.arange(n)
-        freqSpace = k * sampleFreq / n
-        Y = np.fft.fft(dataVec)/n
-        return (freqSpace, Y)
-
