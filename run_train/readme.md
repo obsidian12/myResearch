@@ -11,7 +11,7 @@ and trainer classes(CIFAR10Trainer, ...) in trainer.py
 
 ### when using modelLoader classes
 
-Since these classes are mainly used by trainer classes, so you don't need to how to use these classes
+Since these classes are mainly used by trainer classes, so you don't need to know how to use these classes
 
 * `.get_model()` : you can get model which modelLoader creates.
 * `.save_weights()` : you can save model weights which modelLoader has.
