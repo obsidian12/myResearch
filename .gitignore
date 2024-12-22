@@ -1,0 +1,40 @@
+
+# ignore all log file
+*.out
+*.log
+
+# ignore all training_result folder
+./**/VGG16*/
+./**/RESNET18*/
+./**/UNET*/
+./**/VGG16*/
+./**/RESNET18*/
+./**/UNET*/
+./**/DB*/
+./**/DB*/
+run_train/**/VGG16*/
+run_train/**/RESNET18*/
+run_train/**/UNET*/
+run_train/**/DB*/
+run_analysis/**/VGG16*/
+run_analysis/**/RESNET18*/
+run_analysis/**/UNET*/
+run_analysis/**/DB*/
+
+# ignore DB folder
+DB/
+
+# ignore result folder
+result/
+/result
+
+# ignore __pycache__ folder
+__pycache__/
+/__pycache__
+
+# ignore old folder
+old/
+
+# ignore all main.py
+run_analysis/**/main.py
+run_train/**/main.py
