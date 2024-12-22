@@ -27,4 +27,18 @@ Since these classes are mainly used by trainer classes, so you don't need to how
 
 ### when using trainer classes
 
+* `training(model_name, rdSeed, config_file_path)` : you can create model, train created model, and save results
+    - `model_name` : string, model name to use, Regardless of case
+    - `rdSeed` : int, random seed for random, pytorch modules
+    - `config_file_path` : string, youre config file's path, see examples of config files in this directory
+
 ### when implementing new trainer classes
+
+* `load_DB()`
+    - input : None(only self)
+    - output : tuple of train DataLoader, test DataLoader
+    - function : need to load databases, transform databases to pytorch Tensor, and build and return Dataloaders for training, testing. you can use self.batch_size information
+* `build_num_classes()`
+    - input : None(only self)
+    - output : None
+    - function : save number of classes of your databases to self.num_classes
